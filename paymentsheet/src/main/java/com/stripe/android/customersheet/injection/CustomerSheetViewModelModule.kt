@@ -14,6 +14,7 @@ import com.stripe.android.core.injection.PUBLISHABLE_KEY
 import com.stripe.android.core.injection.STRIPE_ACCOUNT_ID
 import com.stripe.android.core.injection.UIContext
 import com.stripe.android.core.networking.AnalyticsRequestFactory
+import com.stripe.android.core.networking.DefaultAnalyticsRequestExecutor
 import com.stripe.android.core.networking.NetworkTypeDetector
 import com.stripe.android.core.utils.ContextUtils.packageInfo
 import com.stripe.android.customersheet.CustomerSheetLoader
@@ -21,6 +22,8 @@ import com.stripe.android.customersheet.CustomerSheetViewState
 import com.stripe.android.customersheet.DefaultCustomerSheetLoader
 import com.stripe.android.customersheet.analytics.CustomerSheetEventReporter
 import com.stripe.android.customersheet.analytics.DefaultCustomerSheetEventReporter
+import com.stripe.android.payments.core.analytics.ErrorReporter
+import com.stripe.android.payments.core.analytics.RealErrorReporter
 import com.stripe.android.payments.core.injection.PRODUCT_USAGE
 import com.stripe.android.payments.financialconnections.DefaultIsFinancialConnectionsAvailable
 import com.stripe.android.payments.financialconnections.IsFinancialConnectionsAvailable
@@ -176,6 +179,15 @@ internal interface CustomerSheetViewModelModule {
         fun providesEditPaymentMethodViewInteractorFactory(): ModifiableEditPaymentMethodViewInteractor.Factory {
             return DefaultEditPaymentMethodViewInteractor.Factory
         }
+
+        @Provides
+        fun providesErrorReporter(
+            analyticsRequestFactory: AnalyticsRequestFactory,
+            analyticsRequestExecutor: DefaultAnalyticsRequestExecutor,
+        ): ErrorReporter = RealErrorReporter(
+            analyticsRequestFactory = analyticsRequestFactory,
+            analyticsRequestExecutor = analyticsRequestExecutor,
+        )
 
         private val savedPaymentSelection: PaymentSelection? = null
     }

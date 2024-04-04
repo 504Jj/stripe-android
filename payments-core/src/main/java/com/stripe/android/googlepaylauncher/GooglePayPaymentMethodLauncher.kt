@@ -21,6 +21,7 @@ import com.stripe.android.googlepaylauncher.GooglePayPaymentMethodLauncher.Resul
 import com.stripe.android.model.PaymentMethod
 import com.stripe.android.networking.PaymentAnalyticsEvent
 import com.stripe.android.networking.PaymentAnalyticsRequestFactory
+import com.stripe.android.payments.core.analytics.RealErrorReporter
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineScope
@@ -130,7 +131,15 @@ class GooglePayPaymentMethodLauncher @AssistedInject internal constructor(
                 environment = config.environment,
                 billingAddressParameters = config.billingAddressConfig.convert(),
                 existingPaymentMethodRequired = config.existingPaymentMethodRequired,
-                allowCreditCards = config.allowCreditCards
+                allowCreditCards = config.allowCreditCards,
+                errorReporter = RealErrorReporter(
+                    analyticsRequestFactory = PaymentAnalyticsRequestFactory(
+                        context,
+                        PaymentConfiguration.getInstance(context).publishableKey,
+                        setOf(PRODUCT_USAGE_TOKEN)
+                    ),
+                    analyticsRequestExecutor = DefaultAnalyticsRequestExecutor(),
+                )
             )
         },
     )
