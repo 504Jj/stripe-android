@@ -14,7 +14,6 @@ import com.stripe.android.core.injection.PUBLISHABLE_KEY
 import com.stripe.android.core.injection.STRIPE_ACCOUNT_ID
 import com.stripe.android.core.injection.UIContext
 import com.stripe.android.core.networking.AnalyticsRequestFactory
-import com.stripe.android.core.networking.DefaultAnalyticsRequestExecutor
 import com.stripe.android.core.networking.NetworkTypeDetector
 import com.stripe.android.core.utils.ContextUtils.packageInfo
 import com.stripe.android.customersheet.CustomerSheetLoader
@@ -60,6 +59,11 @@ internal interface CustomerSheetViewModelModule {
     fun bindsCustomerSheetLoader(
         impl: DefaultCustomerSheetLoader
     ): CustomerSheetLoader
+
+    @Binds
+    fun bindsErrorReporter(
+        impl: RealErrorReporter
+    ): ErrorReporter
 
     @Binds
     fun bindsStripeIntentRepository(
@@ -179,15 +183,6 @@ internal interface CustomerSheetViewModelModule {
         fun providesEditPaymentMethodViewInteractorFactory(): ModifiableEditPaymentMethodViewInteractor.Factory {
             return DefaultEditPaymentMethodViewInteractor.Factory
         }
-
-        @Provides
-        fun providesErrorReporter(
-            analyticsRequestFactory: AnalyticsRequestFactory,
-            analyticsRequestExecutor: DefaultAnalyticsRequestExecutor,
-        ): ErrorReporter = RealErrorReporter(
-            analyticsRequestFactory = analyticsRequestFactory,
-            analyticsRequestExecutor = analyticsRequestExecutor,
-        )
 
         private val savedPaymentSelection: PaymentSelection? = null
     }

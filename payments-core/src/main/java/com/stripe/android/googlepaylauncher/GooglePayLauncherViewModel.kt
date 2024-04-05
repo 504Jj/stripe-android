@@ -19,7 +19,6 @@ import com.stripe.android.PaymentController
 import com.stripe.android.StripePaymentController
 import com.stripe.android.core.Logger
 import com.stripe.android.core.networking.ApiRequest
-import com.stripe.android.core.networking.DefaultAnalyticsRequestExecutor
 import com.stripe.android.core.utils.requireApplication
 import com.stripe.android.googlepaylauncher.GooglePayLauncher.BillingAddressConfig.Format
 import com.stripe.android.model.ConfirmPaymentIntentParams
@@ -31,7 +30,7 @@ import com.stripe.android.model.StripeIntent
 import com.stripe.android.networking.PaymentAnalyticsRequestFactory
 import com.stripe.android.networking.StripeApiRepository
 import com.stripe.android.networking.StripeRepository
-import com.stripe.android.payments.core.analytics.RealErrorReporter
+import com.stripe.android.payments.core.analytics.ErrorReporter
 import com.stripe.android.utils.mapResult
 import com.stripe.android.view.AuthActivityStarterHost
 import kotlinx.coroutines.Dispatchers
@@ -263,9 +262,9 @@ internal class GooglePayLauncherViewModel(
                 paymentAnalyticsRequestFactory = analyticsRequestFactory
             )
 
-            val errorReporter = RealErrorReporter(
-                analyticsRequestExecutor = DefaultAnalyticsRequestExecutor(),
-                analyticsRequestFactory = analyticsRequestFactory,
+            val errorReporter = ErrorReporter.createFallbackInstance(
+                context = application,
+                productUsage = productUsageTokens
             )
 
             val googlePayRepository = DefaultGooglePayRepository(

@@ -1,8 +1,5 @@
 package com.stripe.android.googlepaylauncher.injection
 
-import android.content.Context
-import com.stripe.android.core.injection.PUBLISHABLE_KEY
-import com.stripe.android.core.networking.AnalyticsRequestExecutor
 import com.stripe.android.core.networking.AnalyticsRequestFactory
 import com.stripe.android.googlepaylauncher.DefaultGooglePayRepository
 import com.stripe.android.googlepaylauncher.DefaultPaymentsClientFactory
@@ -15,7 +12,6 @@ import com.stripe.android.payments.core.analytics.RealErrorReporter
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
-import javax.inject.Named
 import javax.inject.Singleton
 
 @Module(
@@ -35,6 +31,18 @@ internal abstract class GooglePayPaymentMethodLauncherModule {
         defaultPaymentsClientFactory: DefaultPaymentsClientFactory
     ): PaymentsClientFactory
 
+    @Binds
+    @Singleton
+    abstract fun bindsAnalyticsRequestFactory(
+        paymentAnalyticsRequestFactory: PaymentAnalyticsRequestFactory,
+    ): AnalyticsRequestFactory
+
+    @Binds
+    @Singleton
+    abstract fun bindsErrorReporter(
+        realErrorReporter: RealErrorReporter
+    ): ErrorReporter
+
     companion object {
         @Provides
         @Singleton
@@ -42,27 +50,5 @@ internal abstract class GooglePayPaymentMethodLauncherModule {
             googlePayConfig: GooglePayPaymentMethodLauncher.Config,
             paymentsClientFactory: PaymentsClientFactory
         ) = paymentsClientFactory.create(googlePayConfig.environment)
-
-        @Provides
-        @Singleton
-        fun providesAnalyticsRequestFactory(
-            context: Context,
-            @Named(PUBLISHABLE_KEY) publishableKeyProvider: () -> String
-        ): AnalyticsRequestFactory {
-            return PaymentAnalyticsRequestFactory(
-                context = context,
-                publishableKeyProvider = publishableKeyProvider,
-            )
-        }
-
-        @Provides
-        @Singleton
-        fun provideErrorReporter(
-            analyticsRequestFactory: AnalyticsRequestFactory,
-            analyticsRequestExecutor: AnalyticsRequestExecutor
-        ): ErrorReporter = RealErrorReporter(
-            analyticsRequestFactory = analyticsRequestFactory,
-            analyticsRequestExecutor = analyticsRequestExecutor,
-        )
     }
 }
