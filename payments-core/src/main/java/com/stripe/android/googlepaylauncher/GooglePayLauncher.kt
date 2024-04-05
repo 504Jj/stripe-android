@@ -1,6 +1,5 @@
 package com.stripe.android.googlepaylauncher
 
-import android.content.Context
 import android.os.Parcelable
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -64,20 +63,35 @@ class GooglePayLauncher internal constructor(
         readyCallback: ReadyCallback,
         resultCallback: ResultCallback
     ) : this(
-        applicationContext = activity.applicationContext,
-        lifecycleScope = activity.lifecycleScope,
-        config = config,
-        readyCallback = readyCallback,
-        launcher = activity.registerForActivityResult(
-            GooglePayLauncherContract(),
-            resultCallback::onResult,
-        ),
-        analyticsRequestFactory = PaymentAnalyticsRequestFactory(
+        activity.lifecycleScope,
+        config,
+        readyCallback,
+        activity.registerForActivityResult(
+            GooglePayLauncherContract()
+        ) {
+            resultCallback.onResult(it)
+        },
+        googlePayRepositoryFactory = {
+            val context = activity.application
+
+            DefaultGooglePayRepository(
+                context = context,
+                environment = config.environment,
+                billingAddressParameters = config.billingAddressConfig.convert(),
+                existingPaymentMethodRequired = config.existingPaymentMethodRequired,
+                allowCreditCards = config.allowCreditCards,
+                errorReporter = ErrorReporter.createFallbackInstance(
+                    context = context,
+                    productUsage = setOf(PRODUCT_USAGE),
+                )
+            )
+        },
+        PaymentAnalyticsRequestFactory(
             activity,
             PaymentConfiguration.getInstance(activity).publishableKey,
             setOf(PRODUCT_USAGE)
         ),
-        analyticsRequestExecutor = DefaultAnalyticsRequestExecutor()
+        DefaultAnalyticsRequestExecutor()
     )
 
     /**
@@ -97,50 +111,34 @@ class GooglePayLauncher internal constructor(
         readyCallback: ReadyCallback,
         resultCallback: ResultCallback
     ) : this(
-        applicationContext = fragment.requireContext().applicationContext,
         lifecycleScope = fragment.lifecycleScope,
         config = config,
         readyCallback = readyCallback,
-        launcher = fragment.registerForActivityResult(
+        activityResultLauncher = fragment.registerForActivityResult(
             GooglePayLauncherContract(),
             resultCallback::onResult,
         ),
-        analyticsRequestFactory = PaymentAnalyticsRequestFactory(
-            fragment.requireContext(),
-            PaymentConfiguration.getInstance(fragment.requireContext()).publishableKey,
-            setOf(PRODUCT_USAGE)
-        ),
-        analyticsRequestExecutor = DefaultAnalyticsRequestExecutor()
-    )
-
-    internal constructor(
-        applicationContext: Context,
-        lifecycleScope: CoroutineScope,
-        launcher: ActivityResultLauncher<GooglePayLauncherContract.Args>,
-        analyticsRequestFactory: PaymentAnalyticsRequestFactory,
-        analyticsRequestExecutor: AnalyticsRequestExecutor,
-        config: Config,
-        readyCallback: ReadyCallback,
-    ) : this(
-        lifecycleScope = lifecycleScope,
-        config = config,
-        readyCallback = readyCallback,
-        activityResultLauncher = launcher,
         googlePayRepositoryFactory = {
+            val context = fragment.requireActivity().application
+
             DefaultGooglePayRepository(
-                context = applicationContext,
+                context = context,
                 environment = config.environment,
                 billingAddressParameters = config.billingAddressConfig.convert(),
                 existingPaymentMethodRequired = config.existingPaymentMethodRequired,
                 allowCreditCards = config.allowCreditCards,
                 errorReporter = ErrorReporter.createFallbackInstance(
-                    context = applicationContext,
+                    context = context,
                     productUsage = setOf(PRODUCT_USAGE)
                 )
             )
         },
-        paymentAnalyticsRequestFactory = analyticsRequestFactory,
-        analyticsRequestExecutor = analyticsRequestExecutor,
+        paymentAnalyticsRequestFactory = PaymentAnalyticsRequestFactory(
+            context = fragment.requireContext(),
+            publishableKey = PaymentConfiguration.getInstance(fragment.requireContext()).publishableKey,
+            defaultProductUsageTokens = setOf(PRODUCT_USAGE),
+        ),
+        analyticsRequestExecutor = DefaultAnalyticsRequestExecutor(),
     )
 
     init {
@@ -372,17 +370,31 @@ fun rememberGooglePayLauncher(
 
     return remember(config) {
         GooglePayLauncher(
-            applicationContext = context.applicationContext,
             lifecycleScope = lifecycleScope,
             config = config,
-            readyCallback = currentReadyCallback::onReady,
-            launcher = activityResultLauncher,
-            analyticsRequestFactory = PaymentAnalyticsRequestFactory(
+            readyCallback = {
+                currentReadyCallback.onReady(it)
+            },
+            activityResultLauncher = activityResultLauncher,
+            googlePayRepositoryFactory = {
+                DefaultGooglePayRepository(
+                    context = context,
+                    environment = config.environment,
+                    billingAddressParameters = config.billingAddressConfig.convert(),
+                    existingPaymentMethodRequired = config.existingPaymentMethodRequired,
+                    allowCreditCards = config.allowCreditCards,
+                    errorReporter = ErrorReporter.createFallbackInstance(
+                        context = context,
+                        productUsage = setOf(GooglePayLauncher.PRODUCT_USAGE)
+                    )
+                )
+            },
+            PaymentAnalyticsRequestFactory(
                 context,
                 PaymentConfiguration.getInstance(context).publishableKey,
                 setOf(GooglePayLauncher.PRODUCT_USAGE)
             ),
-            analyticsRequestExecutor = DefaultAnalyticsRequestExecutor(),
+            DefaultAnalyticsRequestExecutor()
         )
     }
 }
