@@ -2806,6 +2806,8 @@ internal class PaymentSheetViewModelTest {
                     logger = FakeUserFacingLogger(),
                 ),
                 editInteractorFactory = fakeEditPaymentMethodInteractorFactory,
+                cvcRecollectionLauncherFactory = mock(),
+                cvcRecollectionHandler = FakeCVCRecollectionHandler()
             ).apply {
                 if (shouldRegister) {
                     val activityResultCaller = mock<ActivityResultCaller> {

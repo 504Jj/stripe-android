@@ -1122,6 +1122,8 @@ internal class PaymentSheetActivityTest {
                     logger = FakeUserFacingLogger(),
                 ),
                 editInteractorFactory = FakeEditPaymentMethodInteractor.Factory,
+                cvcRecollectionLauncherFactory = mock(),
+                cvcRecollectionHandler = FakeCVCRecollectionHandler()
             )
         }
     }
