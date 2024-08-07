@@ -7,7 +7,11 @@ import com.stripe.android.core.Logger
 import com.stripe.android.core.networking.ApiRequest
 import com.stripe.android.core.networking.StripeNetworkClient
 import com.stripe.android.core.version.StripeSdkVersion
+import com.stripe.android.financialconnections.domain.AttachConsumerToLinkAccountSession
+import com.stripe.android.financialconnections.domain.CreateInstantDebitsResult
 import com.stripe.android.financialconnections.domain.HandleError
+import com.stripe.android.financialconnections.domain.RealAttachConsumerToLinkAccountSession
+import com.stripe.android.financialconnections.domain.RealCreateInstantDebitsResult
 import com.stripe.android.financialconnections.domain.RealHandleError
 import com.stripe.android.financialconnections.features.accountupdate.PresentAccountUpdateRequiredSheet
 import com.stripe.android.financialconnections.features.accountupdate.RealPresentAccountUpdateRequiredSheet
@@ -60,6 +64,16 @@ internal interface FinancialConnectionsSheetNativeModule {
     @Binds
     @Singleton
     fun bindsProvideApiRequestOptions(impl: RealProvideApiRequestOptions): ProvideApiRequestOptions
+
+    @Binds
+    fun bindsAttachConsumerToLinkAccountSession(
+        impl: RealAttachConsumerToLinkAccountSession,
+    ): AttachConsumerToLinkAccountSession
+
+    @Binds
+    fun bindsCreateInstantDebitsPaymentMethod(
+        impl: RealCreateInstantDebitsResult,
+    ): CreateInstantDebitsResult
 
     companion object {
         @Provides

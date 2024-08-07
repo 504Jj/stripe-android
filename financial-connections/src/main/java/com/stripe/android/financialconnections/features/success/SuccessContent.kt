@@ -36,7 +36,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType.Companion.LongPress
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -275,7 +274,7 @@ private fun SpinnerToCheckmark(
             contentAlignment = Alignment.Center,
             modifier = modifier
                 .size(ICON_SIZE.dp)
-                .background(FinancialConnectionsTheme.colors.iconBrand, CircleShape)
+                .background(FinancialConnectionsTheme.colors.buttonPrimary, CircleShape)
         ) {
             Icon(
                 modifier = Modifier.graphicsLayer {
@@ -284,7 +283,7 @@ private fun SpinnerToCheckmark(
                 },
                 imageVector = Icons.Default.Check,
                 contentDescription = stringResource(id = R.string.stripe_success_pane_title),
-                tint = Color.White,
+                tint = FinancialConnectionsTheme.colors.contentOnBrand,
             )
         }
     }

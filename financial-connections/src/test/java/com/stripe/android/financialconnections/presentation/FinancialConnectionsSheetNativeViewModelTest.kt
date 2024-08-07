@@ -323,6 +323,7 @@ internal class FinancialConnectionsSheetNativeViewModelTest {
         logger = mock(),
         navigationManager = TestNavigationManager(),
         savedStateHandle = SavedStateHandle(),
-        initialState = initialState
+        initialState = initialState,
+        createInstantDebitsResult = mock(),
     )
 }

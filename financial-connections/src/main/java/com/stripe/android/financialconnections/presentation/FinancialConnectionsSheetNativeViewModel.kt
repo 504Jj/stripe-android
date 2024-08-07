@@ -28,6 +28,7 @@ import com.stripe.android.financialconnections.di.APPLICATION_ID
 import com.stripe.android.financialconnections.di.DaggerFinancialConnectionsSheetNativeComponent
 import com.stripe.android.financialconnections.di.FinancialConnectionsSheetNativeComponent
 import com.stripe.android.financialconnections.domain.CompleteFinancialConnectionsSession
+import com.stripe.android.financialconnections.domain.CreateInstantDebitsResult
 import com.stripe.android.financialconnections.domain.NativeAuthFlowCoordinator
 import com.stripe.android.financialconnections.domain.NativeAuthFlowCoordinator.Message
 import com.stripe.android.financialconnections.domain.NativeAuthFlowCoordinator.Message.Complete.EarlyTerminationCause
@@ -80,6 +81,7 @@ internal class FinancialConnectionsSheetNativeViewModel @Inject constructor(
     private val nativeAuthFlowCoordinator: NativeAuthFlowCoordinator,
     private val uriUtils: UriUtils,
     private val completeFinancialConnectionsSession: CompleteFinancialConnectionsSession,
+    private val createInstantDebitsResult: CreateInstantDebitsResult,
     private val eventTracker: FinancialConnectionsAnalyticsTracker,
     private val logger: Logger,
     private val navigationManager: NavigationManager,
@@ -293,12 +295,19 @@ internal class FinancialConnectionsSheetNativeViewModel @Inject constructor(
         closeAuthFlowError: Throwable? = null
     ) = viewModelScope.launch {
         mutex.withLock {
+            val state = stateFlow.value
+
             // prevents multiple complete triggers.
-            if (stateFlow.value.completed) return@launch
+            if (state.completed) {
+                return@launch
+            }
+
             setState { copy(completed = true) }
+
             runCatching {
                 val completionResult = completeFinancialConnectionsSession(earlyTerminationCause, closeAuthFlowError)
                 val session = completionResult.session
+
                 eventTracker.track(
                     Complete(
                         pane = currentPane.value,
@@ -308,12 +317,17 @@ internal class FinancialConnectionsSheetNativeViewModel @Inject constructor(
                         status = completionResult.status,
                     )
                 )
+
                 when {
                     session.isCustomManualEntryError() -> {
                         FinancialConnections.emitEvent(Name.MANUAL_ENTRY_INITIATED)
                         finishWithResult(
                             Failed(error = CustomManualEntryRequiredError())
                         )
+                    }
+
+                    state.isLinkWithStripe -> {
+                        handleInstantDebitsCompletion(session)
                     }
 
                     session.hasAValidAccount() -> {
@@ -355,6 +369,15 @@ internal class FinancialConnectionsSheetNativeViewModel @Inject constructor(
                 finishWithResult(Failed(closeAuthFlowError ?: completeSessionError))
             }
         }
+    }
+
+    private suspend fun handleInstantDebitsCompletion(session: FinancialConnectionsSession) {
+        val bankAccountId = session.paymentAccount!!.id
+        val instantDebits = createInstantDebitsResult(bankAccountId)
+
+        finishWithResult(
+            Completed(instantDebits = instantDebits)
+        )
     }
 
     private fun finishWithResult(
