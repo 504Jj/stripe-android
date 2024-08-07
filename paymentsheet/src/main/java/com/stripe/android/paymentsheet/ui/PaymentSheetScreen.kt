@@ -390,7 +390,7 @@ private fun PrimaryButton(viewModel: BaseSheetViewModel) {
             )
             binding
         },
-        modifier = modifier,
+        modifier = modifier.padding(top = 8.dp),
     )
 
     LaunchedEffect(viewModel, button) {
