@@ -5,6 +5,7 @@ import com.stripe.android.financialconnections.CoroutineTestRule
 import com.stripe.android.financialconnections.TestFinancialConnectionsAnalyticsTracker
 import com.stripe.android.financialconnections.domain.DisableNetworking
 import com.stripe.android.financialconnections.domain.GetOrFetchSync
+import com.stripe.android.financialconnections.domain.LookupConsumerAndStartVerification
 import com.stripe.android.financialconnections.domain.NativeAuthFlowCoordinator
 import com.stripe.android.financialconnections.model.FinancialConnectionsSessionManifest.Pane
 import com.stripe.android.financialconnections.navigation.Destination
@@ -32,6 +33,7 @@ class NetworkingLinkLoginWarmupViewModelTest {
     private val handleError = TestHandleError()
     private val disableNetworking = mock<DisableNetworking>()
     private val eventTracker = TestFinancialConnectionsAnalyticsTracker()
+    private val lookupConsumerAndStartVerification = mock<LookupConsumerAndStartVerification>()
     private val nativeAuthFlowCoordinator = mock<NativeAuthFlowCoordinator>()
 
     private fun buildViewModel(
@@ -43,6 +45,7 @@ class NetworkingLinkLoginWarmupViewModelTest {
         disableNetworking = disableNetworking,
         eventTracker = eventTracker,
         initialState = state,
+        lookupConsumerAndStartVerification = lookupConsumerAndStartVerification,
         nativeAuthFlowCoordinator = nativeAuthFlowCoordinator,
     )
 
