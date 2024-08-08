@@ -55,7 +55,7 @@ import com.stripe.android.uicore.utils.stateFlowOf
 internal fun CvcRecollectionScreen(
     cardBrand: CardBrand,
     lastFour: String,
-    displayMode: CvcRecollectionViewModel.Args.DisplayMode,
+    displayMode: Args.DisplayMode,
     viewActionHandler: (action: CvcRecollectionViewAction) -> Unit
 ) {
     val element = remember {
@@ -64,6 +64,18 @@ internal fun CvcRecollectionScreen(
             CvcController(cardBrandFlow = stateFlowOf(cardBrand))
         )
     }
+
+    LaunchedEffect(element) {
+        element.controller.isComplete.collect { isComplete ->
+            val completion = if (isComplete) {
+                CVCRecollectionCompletion.Completed(element.controller.fieldValue.value)
+            } else {
+                CVCRecollectionCompletion.Incomplete
+            }
+            viewActionHandler(CvcRecollectionViewAction.CVCCompletionChanged(completion))
+        }
+    }
+
 
     StripeTheme {
         Column(
@@ -75,12 +87,14 @@ internal fun CvcRecollectionScreen(
                 viewActionHandler.invoke(CvcRecollectionViewAction.OnBackPressed)
             }
             CvcRecollectionField(element = element, cardBrand = cardBrand, lastFour = lastFour)
-            CvcRecollectionButton(element.controller.isComplete.collectAsState()) {
-                viewActionHandler.invoke(
-                    CvcRecollectionViewAction.OnConfirmPressed(
-                        element.controller.fieldValue.value
+            if (displayMode is Args.DisplayMode.Activity) {
+                CvcRecollectionButton(element.controller.isComplete.collectAsState()) {
+                    viewActionHandler.invoke(
+                        CvcRecollectionViewAction.OnConfirmPressed(
+                            element.controller.fieldValue.value
+                        )
                     )
-                )
+                }
             }
         }
     }
@@ -162,10 +176,10 @@ internal fun CvcRecollectionField(element: CvcElement, cardBrand: CardBrand, las
 
 @Composable
 private fun CvcRecollectionHeader(
-    displayMode: CvcRecollectionViewModel.Args.DisplayMode,
+    displayMode: Args.DisplayMode,
     onClosePressed: () -> Unit
 ) {
-    if (displayMode is CvcRecollectionViewModel.Args.DisplayMode.Activity) {
+    if (displayMode is Args.DisplayMode.Activity) {
         Row(
             modifier = Modifier
                 .padding(0.dp, 16.dp, 0.dp, 0.dp)
@@ -191,7 +205,10 @@ private fun CvcRecollectionHeader(
 }
 
 @Composable
-private fun CvcRecollectionButton(isComplete: State<Boolean>, onConfirmPressed: () -> Unit) {
+private fun CvcRecollectionButton(
+    isComplete: State<Boolean>,
+    onConfirmPressed: () -> Unit
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth(1f)
@@ -215,7 +232,7 @@ private fun CvcRecollectionFieldPreview() {
         CvcRecollectionScreen(
             cardBrand = CardBrand.Visa,
             lastFour = "4242",
-            displayMode = CvcRecollectionViewModel.Args.DisplayMode.Activity(true),
+            displayMode = Args.DisplayMode.Activity(true),
             viewActionHandler = { }
         )
     }
