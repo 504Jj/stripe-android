@@ -1,11 +1,15 @@
 package com.stripe.android.financialconnections.features.networkinglinkloginwarmup
 
 import com.stripe.android.financialconnections.ApiKeyFixtures
+import com.stripe.android.financialconnections.ApiKeyFixtures.consumerSession
+import com.stripe.android.financialconnections.ApiKeyFixtures.sessionManifest
+import com.stripe.android.financialconnections.ApiKeyFixtures.syncResponse
 import com.stripe.android.financialconnections.CoroutineTestRule
 import com.stripe.android.financialconnections.TestFinancialConnectionsAnalyticsTracker
 import com.stripe.android.financialconnections.domain.DisableNetworking
 import com.stripe.android.financialconnections.domain.GetOrFetchSync
 import com.stripe.android.financialconnections.domain.LookupConsumerAndStartVerification
+import com.stripe.android.financialconnections.domain.LookupConsumerAndStartVerification.Result.Success
 import com.stripe.android.financialconnections.domain.NativeAuthFlowCoordinator
 import com.stripe.android.financialconnections.model.FinancialConnectionsSessionManifest.Pane
 import com.stripe.android.financialconnections.navigation.Destination
@@ -18,6 +22,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -66,9 +71,25 @@ class NetworkingLinkLoginWarmupViewModelTest {
 
     @Test
     fun `onContinueClick - navigates to verification pane`() = runTest {
+        val syncResponse = syncResponse(
+            manifest = sessionManifest().copy(
+                accountholderCustomerEmailAddress = "email@email.com",
+            ),
+        )
+        whenever(getOrFetchSync(any())).thenReturn(syncResponse)
+
         val viewModel = buildViewModel(NetworkingLinkLoginWarmupState())
 
+        whenever(
+            lookupConsumerAndStartVerification.invoke(
+                email = anyOrNull(),
+                businessName = anyOrNull(),
+                verificationType = anyOrNull(),
+            )
+        ).thenReturn(Success(consumerSession()))
+
         viewModel.onContinueClick()
+
         navigationManager.assertNavigatedTo(
             destination = Destination.NetworkingLinkVerification,
             pane = Pane.NETWORKING_LINK_LOGIN_WARMUP

@@ -19,6 +19,7 @@ import com.stripe.android.financialconnections.domain.GetOrFetchSync.RefetchCond
 import com.stripe.android.financialconnections.domain.IsLinkWithStripe
 import com.stripe.android.financialconnections.domain.MarkLinkVerified
 import com.stripe.android.financialconnections.domain.NativeAuthFlowCoordinator
+import com.stripe.android.financialconnections.domain.StartVerification
 import com.stripe.android.financialconnections.features.networkinglinkverification.NetworkingLinkVerificationState.Payload
 import com.stripe.android.financialconnections.model.FinancialConnectionsInstitution
 import com.stripe.android.financialconnections.model.FinancialConnectionsSessionManifest.Pane
@@ -29,14 +30,15 @@ import com.stripe.android.financialconnections.navigation.topappbar.TopAppBarSta
 import com.stripe.android.financialconnections.presentation.Async
 import com.stripe.android.financialconnections.presentation.Async.Uninitialized
 import com.stripe.android.financialconnections.presentation.FinancialConnectionsViewModel
-import com.stripe.android.financialconnections.repository.CachedConsumerSession
 import com.stripe.android.financialconnections.utils.error
+import com.stripe.android.model.ConsumerSession
 import com.stripe.android.uicore.elements.IdentifierSpec
 import com.stripe.android.uicore.elements.OTPController
 import com.stripe.android.uicore.elements.OTPElement
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import getRedactedPhoneNumber
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -48,6 +50,7 @@ internal class NetworkingLinkVerificationViewModel @AssistedInject constructor(
     private val markLinkVerified: MarkLinkVerified,
     private val navigationManager: NavigationManager,
     private val analyticsTracker: FinancialConnectionsAnalyticsTracker,
+    private val startVerification: StartVerification,
     private val logger: Logger,
     private val isLinkWithStripe: IsLinkWithStripe,
     private val attachConsumerToLinkAccountSession: AttachConsumerToLinkAccountSession,
@@ -56,14 +59,15 @@ internal class NetworkingLinkVerificationViewModel @AssistedInject constructor(
 
     init {
         observeAsyncs()
-        renderInitialState()
+        startVerification()
     }
 
-    private fun renderInitialState() {
+    private fun startVerification() {
         suspend {
             val manifest = getOrFetchSync().manifest
             val cachedConsumerSession = requireNotNull(getCachedConsumerSession())
-            buildPayload(cachedConsumerSession, manifest.initialInstitution)
+            val consumerSession = startVerification.sms(cachedConsumerSession.clientSecret)
+            buildPayload(consumerSession, manifest.initialInstitution)
         }.execute { payload ->
             copy(payload = payload)
         }
@@ -78,11 +82,11 @@ internal class NetworkingLinkVerificationViewModel @AssistedInject constructor(
     }
 
     private fun buildPayload(
-        consumerSession: CachedConsumerSession,
+        consumerSession: ConsumerSession,
         initialInstitution: FinancialConnectionsInstitution?,
     ) = Payload(
         email = consumerSession.emailAddress,
-        phoneNumber = consumerSession.phoneNumber,
+        phoneNumber = consumerSession.getRedactedPhoneNumber(),
         initialInstitution = initialInstitution,
         consumerSessionClientSecret = consumerSession.clientSecret,
         otpElement = OTPElement(

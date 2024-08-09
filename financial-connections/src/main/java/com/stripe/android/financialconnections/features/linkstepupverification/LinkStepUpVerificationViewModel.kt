@@ -91,7 +91,6 @@ internal class LinkStepUpVerificationViewModel @AssistedInject constructor(
                     eventTracker.track(VerificationStepUpError(PANE, LookupConsumerSession))
                     setState { copy(payload = Fail(error)) }
                 },
-                onStartVerification = { /* no-op */ },
                 onVerificationStarted = { consumerSession ->
                     val payload = buildPayload(consumerSession)
                     setState { copy(payload = Success(payload)) }
@@ -202,7 +201,6 @@ internal class LinkStepUpVerificationViewModel @AssistedInject constructor(
                     eventTracker.track(VerificationStepUpError(PANE, LookupConsumerSession))
                     setState { copy(resendOtp = Fail(error)) }
                 },
-                onStartVerification = { /* no-op */ },
                 onVerificationStarted = { setState { copy(resendOtp = Success(Unit)) } },
                 onStartVerificationError = { error ->
                     eventTracker.track(VerificationStepUpError(PANE, StartVerificationError))

@@ -43,7 +43,6 @@ class LookupConsumerAndStartVerificationTest {
             verificationType = VerificationType.EMAIL,
             onConsumerNotFound = { onConsumerNotFoundCalled = true },
             onLookupError = { fail("onLookupError should not be called") },
-            onStartVerification = { fail("onStartVerification should not be called") },
             onVerificationStarted = { fail("onVerificationStarted should not be called") },
             onStartVerificationError = { fail("onStartVerificationError should not be called") }
         )
@@ -86,7 +85,6 @@ class LookupConsumerAndStartVerificationTest {
                 verificationType = expectedVerificationType,
                 onConsumerNotFound = { fail("onConsumerNotFound should not be called") },
                 onLookupError = { fail("onLookupError should not be called") },
-                onStartVerification = { onStartVerificationCalled = true },
                 onVerificationStarted = { onVerificationStartedCalled = true },
                 onStartVerificationError = { fail("onStartVerificationError should not be called") }
             )
@@ -115,7 +113,6 @@ class LookupConsumerAndStartVerificationTest {
             verificationType = VerificationType.EMAIL,
             onConsumerNotFound = { fail("onConsumerNotFound should not be called") },
             onLookupError = { onLookupErrorCalled = true },
-            onStartVerification = { fail("onStartVerification should not be called") },
             onVerificationStarted = { fail("onVerificationStarted should not be called") },
             onStartVerificationError = { fail("onStartVerificationError should not be called") }
         )
@@ -153,7 +150,6 @@ class LookupConsumerAndStartVerificationTest {
             verificationType = expectedVerificationType,
             onConsumerNotFound = { fail("onConsumerNotFound should not be called") },
             onLookupError = { fail("onLookupError should not be called") },
-            onStartVerification = { },
             onVerificationStarted = { fail("onVerificationStarted should not be called") },
             onStartVerificationError = { onStartVerificationErrorCalled = true }
         )

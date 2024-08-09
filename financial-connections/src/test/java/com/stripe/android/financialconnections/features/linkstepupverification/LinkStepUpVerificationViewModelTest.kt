@@ -71,7 +71,6 @@ class LinkStepUpVerificationViewModelTest {
         val consumerSession = ApiKeyFixtures.consumerSession()
         getManifestReturnsManifestWithEmail(email)
 
-        val onStartVerificationCaptor = argumentCaptor<suspend () -> Unit>()
         val onVerificationStartedCaptor = argumentCaptor<suspend (ConsumerSession) -> Unit>()
 
         val viewModel = buildViewModel()
@@ -82,12 +81,10 @@ class LinkStepUpVerificationViewModelTest {
             verificationType = eq(VerificationType.EMAIL),
             onConsumerNotFound = any(),
             onLookupError = any(),
-            onStartVerification = onStartVerificationCaptor.capture(),
             onVerificationStarted = onVerificationStartedCaptor.capture(),
             onStartVerificationError = any()
         )
 
-        onStartVerificationCaptor.firstValue()
         onVerificationStartedCaptor.firstValue(consumerSession)
 
         val state = viewModel.stateFlow.value
@@ -112,7 +109,6 @@ class LinkStepUpVerificationViewModelTest {
                 verificationType = eq(VerificationType.EMAIL),
                 onConsumerNotFound = onConsumerNotFoundCaptor.capture(),
                 onLookupError = any(),
-                onStartVerification = any(),
                 onVerificationStarted = any(),
                 onStartVerificationError = any()
             )
@@ -142,7 +138,6 @@ class LinkStepUpVerificationViewModelTest {
         runTest {
             val email = "test@test.com"
             val consumerSession = ApiKeyFixtures.consumerSession()
-            val onStartVerificationCaptor = argumentCaptor<suspend () -> Unit>()
             val onVerificationStartedCaptor = argumentCaptor<suspend (ConsumerSession) -> Unit>()
             val linkVerifiedManifest = sessionManifest().copy(nextPane = Pane.INSTITUTION_PICKER)
             val selectedAccount = ApiKeyFixtures.cachedPartnerAccount()
@@ -163,12 +158,10 @@ class LinkStepUpVerificationViewModelTest {
                 verificationType = eq(VerificationType.EMAIL),
                 onConsumerNotFound = any(),
                 onLookupError = any(),
-                onStartVerification = onStartVerificationCaptor.capture(),
                 onVerificationStarted = onVerificationStartedCaptor.capture(),
                 onStartVerificationError = any()
             )
 
-            onStartVerificationCaptor.firstValue()
             onVerificationStartedCaptor.firstValue(consumerSession)
 
             val otpController = viewModel.stateFlow.value.payload()!!.otpElement.controller
