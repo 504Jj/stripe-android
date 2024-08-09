@@ -120,7 +120,6 @@ class PaymentOptionsScreenshotTest {
                 DisplayableSavedPaymentMethod(
                     displayName = "Card".resolvableString,
                     paymentMethod = createCard("4242"),
-                    isRemovable = false,
                 )
             ),
             PaymentOptionsItem.SavedPaymentMethod(
@@ -135,7 +134,6 @@ class PaymentOptionsScreenshotTest {
                             )
                         )
                     },
-                    isRemovable = false,
                     isCbcEligible = true,
                 )
             ),
@@ -143,7 +141,6 @@ class PaymentOptionsScreenshotTest {
                 DisplayableSavedPaymentMethod(
                     displayName = "Card".resolvableString,
                     paymentMethod = createCard("1234"),
-                    isRemovable = false,
                 )
             ),
         )
