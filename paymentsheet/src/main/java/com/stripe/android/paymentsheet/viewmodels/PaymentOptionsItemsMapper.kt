@@ -15,6 +15,7 @@ internal class PaymentOptionsItemsMapper(
     private val isLinkEnabled: StateFlow<Boolean?>,
     private val nameProvider: (PaymentMethodCode?) -> ResolvableString,
     private val isNotPaymentFlow: Boolean,
+    private val allowsRemovalOfLastSavedPaymentMethod: Boolean,
     private val isCbcEligible: () -> Boolean
 ) {
 
@@ -27,8 +28,8 @@ internal class PaymentOptionsItemsMapper(
             createPaymentOptionsItems(
                 paymentMethods = customerState?.paymentMethods ?: listOf(),
                 isLinkEnabled = isLinkEnabled,
-                // TODO(samer-stripe): Set this based on customer_session permissions
-                canRemovePaymentMethods = true,
+                hasRemovePermissions = customerState?.permissions?.canRemovePaymentMethods ?: false,
+                allowsRemovalOfLastSavedPaymentMethod = allowsRemovalOfLastSavedPaymentMethod,
                 isGooglePayReady = isGooglePayReady,
             ) ?: emptyList()
         }
@@ -38,9 +39,16 @@ internal class PaymentOptionsItemsMapper(
     private fun createPaymentOptionsItems(
         paymentMethods: List<PaymentMethod>,
         isLinkEnabled: Boolean?,
-        canRemovePaymentMethods: Boolean?,
+        hasRemovePermissions: Boolean,
+        allowsRemovalOfLastSavedPaymentMethod: Boolean,
         isGooglePayReady: Boolean,
     ): List<PaymentOptionsItem>? {
+        val canRemovePaymentMethods = when (paymentMethods.size) {
+            0 -> false
+            1 -> hasRemovePermissions && allowsRemovalOfLastSavedPaymentMethod
+            else -> hasRemovePermissions
+        }
+
         if (isLinkEnabled == null) return null
 
         return PaymentOptionsStateFactory.createPaymentOptionsList(
@@ -49,7 +57,7 @@ internal class PaymentOptionsItemsMapper(
             showLink = isLinkEnabled && isNotPaymentFlow,
             nameProvider = nameProvider,
             isCbcEligible = isCbcEligible(),
-            canRemovePaymentMethods = canRemovePaymentMethods ?: false
+            canRemovePaymentMethods = canRemovePaymentMethods
         )
     }
 }

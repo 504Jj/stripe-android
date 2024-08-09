@@ -54,6 +54,7 @@ internal class SavedPaymentMethodMutator(
             isLinkEnabled = isLinkEnabled,
             isNotPaymentFlow = isNotPaymentFlow,
             nameProvider = providePaymentMethodName,
+            allowsRemovalOfLastSavedPaymentMethod = allowsRemovalOfLastSavedPaymentMethod,
             isCbcEligible = isCbcEligible,
         )
     }
@@ -61,16 +62,8 @@ internal class SavedPaymentMethodMutator(
     val paymentOptionsItems: StateFlow<List<PaymentOptionsItem>> = paymentOptionsItemsMapper()
 
     val canEdit: StateFlow<Boolean> = paymentOptionsItems.mapAsStateFlow { items ->
-        val paymentMethods = items.filterIsInstance<PaymentOptionsItem.SavedPaymentMethod>()
-        if (allowsRemovalOfLastSavedPaymentMethod) {
-            paymentMethods.isNotEmpty()
-        } else {
-            if (paymentMethods.size == 1) {
-                // We will allow them to change card brand, but not delete.
-                paymentMethods.first().isModifiable
-            } else {
-                paymentMethods.size > 1
-            }
+        items.filterIsInstance<PaymentOptionsItem.SavedPaymentMethod>().any { method ->
+            method.isModifiable || method.isRemovable
         }
     }
 
@@ -172,11 +165,11 @@ internal class SavedPaymentMethodMutator(
     }
 
     fun modifyPaymentMethod(paymentMethod: PaymentMethod) {
-        val canRemove = if (allowsRemovalOfLastSavedPaymentMethod) {
-            true
-        } else {
-            paymentOptionsItems.value.filterIsInstance<PaymentOptionsItem.SavedPaymentMethod>().size > 1
-        }
+        val option = paymentOptionsItems.value
+            .filterIsInstance<PaymentOptionsItem.SavedPaymentMethod>()
+            .find { item ->
+                item.paymentMethod.id == paymentMethod.id
+            }
 
         navigationHandler.transitionTo(
             PaymentSheetScreen.EditPaymentMethod(
@@ -205,7 +198,7 @@ internal class SavedPaymentMethodMutator(
                     updateExecutor = { method, brand ->
                         modifyCardPaymentMethod(method, brand)
                     },
-                    canRemove = canRemove,
+                    canRemove = option?.isRemovable ?: false,
                     isLiveMode = isLiveModeProvider(),
                 ),
                 isLiveMode = isLiveModeProvider(),
