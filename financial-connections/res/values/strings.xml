@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xteeml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="stripe_consent_pane_tc">You agree to Stripe\'s <annotation clickable="terms">Terms</annotation> and <annotation clickable="privacy">Privacy Policy</annotation>. <annotation clickable="privacy_center">Learn more</annotation></string>
     <string name="stripe_consent_pane_manual_entry"><annotation clickable="manual_entry">Enter account details manually instead</annotation></string>
